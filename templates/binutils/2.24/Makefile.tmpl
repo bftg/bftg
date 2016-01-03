@@ -1,0 +1,19 @@
+BINUTILS=binutils-@!version!@
+BINUTILS_BUILD_DIR = build-$(BINUTILS)
+PREFIX=@!prefix!@
+
+.PHONY: all binutils
+
+all: binutils
+
+binutils: $(BINUTILS_BUILD_DIR)/Makefile
+	mkdir -p $(PREFIX)
+	cd $(BINUTILS_BUILD_DIR); $(MAKE) all; $(MAKE) install;
+
+$(BINUTILS_BUILD_DIR)/Makefile:
+	mkdir -p $(BINUTILS_BUILD_DIR)
+	cd $(BINUTILS_BUILD_DIR); ../$(BINUTILS)/configure \
+<!--(if target != None)-->
+		--target=@!target!@ \
+<!--(end)-->
+		--prefix=$(PREFIX) --disable-nls

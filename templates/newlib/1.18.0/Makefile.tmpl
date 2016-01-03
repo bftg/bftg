@@ -1,0 +1,22 @@
+NEWLIB=newlib-@!version!@
+NEWLIB_BUILD_DIR = build-$(NEWLIB)
+PREFIX=@!prefix!@
+
+.PHONY: all newlib
+
+all: newlib
+
+newlib: $(NEWLIB_BUILD_DIR)/Makefile $(NEWLIB)/newlib/libc/sys/@!osname!@/Makefile.in
+	mkdir -p $(PREFIX)
+	cd $(NEWLIB_BUILD_DIR); $(MAKE) all; $(MAKE) install;
+
+$(NEWLIB_BUILD_DIR)/Makefile:
+	mkdir -p $(NEWLIB_BUILD_DIR)
+	cd $(NEWLIB_BUILD_DIR); ../$(NEWLIB)/configure \
+<!--(if target != None)-->
+		--target=@!target!@ \
+<!--(end)-->
+		--prefix=$(PREFIX)
+
+$(NEWLIB)/newlib/libc/sys/@!osname!@/Makefile.in: $(NEWLIB)/newlib/libc/sys/@!osname!@/Makefile.am
+	cd $(NEWLIB)/newlib/libc/sys/@!osname!@; autoreconf;

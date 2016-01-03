@@ -1,0 +1,221 @@
+diff --git a/bfd/config.bfd b/bfd/config.bfd
+index 5324d39..cb803f1 100644
+--- a/bfd/config.bfd
++++ b/bfd/config.bfd
+@@ -161,6 +161,23 @@ case "${targ}" in
+     ;;
+ 
+ # START OF targmatch.h
++  i[3-7]86-*-@!osname!@*)
++    targ_defvec=bfd_elf32_i386_vec
++    targ_selvecs=
++    targ64_selvecs=bfd_elf64_x86_64_vec
++    ;;
++#ifdef BFD64
++  x86_64-*-@!osname!@*)
++    targ_defvec=bfd_elf64_x86_64_vec
++    targ_selvecs=bfd_elf32_i386_vec
++    want64=true
++    ;;
++#endif
++  arm-*-@!osname!@*)
++    targ_defvec=bfd_elf32_littlearm_vec
++    targ_selvecs=bfd_elf32_bigarm_vec
++    ;;
++
+ #ifdef BFD64
+   aarch64-*-elf)
+     targ_defvec=bfd_elf64_littleaarch64_vec
+diff --git a/config.sub b/config.sub
+index 61cb4bc..69cf67a 100755
+--- a/config.sub
++++ b/config.sub
+@@ -1365,7 +1365,7 @@ case $os in
+ 	      | -bosx* | -nextstep* | -cxux* | -aout* | -elf* | -oabi* \
+ 	      | -ptx* | -coff* | -ecoff* | -winnt* | -domain* | -vsta* \
+ 	      | -udi* | -eabi* | -lites* | -ieee* | -go32* | -aux* \
+-	      | -chorusos* | -chorusrdb* | -cegcc* \
++	      | -chorusos* | -chorusrdb* | -cegcc* | -@!osname!@* \
+ 	      | -cygwin* | -msys* | -pe* | -psos* | -moss* | -proelf* | -rtems* \
+ 	      | -mingw32* | -mingw64* | -linux-gnu* | -linux-android* \
+ 	      | -linux-newlib* | -linux-musl* | -linux-uclibc* \
+diff --git a/gas/configure.tgt b/gas/configure.tgt
+index 77c1d9b..6e0a6bf 100644
+--- a/gas/configure.tgt
++++ b/gas/configure.tgt
+@@ -116,6 +116,8 @@ esac
+ generic_target=${cpu_type}-$vendor-$os
+ # Note: This table is alpha-sorted, please try to keep it that way.
+ case ${generic_target} in
++  i386-*-@!osname!@*)				fmt=elf;;
++  arm-*-@!osname!@*)				fmt=elf;;
+   aarch64*-*-elf)			fmt=elf;;
+   aarch64*-*-linux*)			fmt=elf em=linux ;;
+ 
+diff --git a/ld/Makefile.am b/ld/Makefile.am
+index b2b2a6e..cdaef94 100644
+--- a/ld/Makefile.am
++++ b/ld/Makefile.am
+@@ -729,6 +729,10 @@ earmelf.c: $(srcdir)/emulparams/armelf.sh \
+   $(ELF_DEPS) $(srcdir)/emultempl/armelf.em \
+   $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} armelf "$(tdir_armelf)"
++earmelf_@!osname!@.c: $(srcdir)/emulparams/armelf_@!osname!@.sh \
++  $(ELF_DEPS) $(srcdir)/emultempl/armelf.em \
++  $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} armelf_@!osname!@ "$(tdir_armelf_@!osname!@)"
+ earmelf_fbsd.c: $(srcdir)/emulparams/armelf_fbsd.sh \
+   $(srcdir)/emulparams/armelf.sh \
+   $(ELF_DEPS) $(srcdir)/emultempl/armelf.em \
+@@ -1268,6 +1272,9 @@ eelf32xtensa.c: $(srcdir)/emulparams/elf32xtensa.sh $(ELF_DEPS) \
+ eelf_i386.c: $(srcdir)/emulparams/elf_i386.sh \
+   $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf_i386 "$(tdir_elf_i386)"
++eelf_i386_@!osname!@.c: $(srcdir)/emulparams/elf_i386_@!osname!@.sh \
++  $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} elf_i386_@!osname!@ "$(tdir_elf_i386_@!osname!@)"
+ eelf_i386_be.c: $(srcdir)/emulparams/elf_i386_be.sh \
+   $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf_i386_be "$(tdir_elf_i386_be)"
+@@ -2138,6 +2145,9 @@ eelf_k1om_fbsd.c: $(srcdir)/emulparams/elf_k1om_fbsd.sh \
+ eelf_x86_64.c: $(srcdir)/emulparams/elf_x86_64.sh \
+   $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf_x86_64 "$(tdir_elf_x86_64)"
++eelf_x86_64_@!osname!@.c: $(srcdir)/emulparams/elf_x86_64_@!osname!@.sh \
++  $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} elf_x86_64_@!osname!@ "$(tdir_elf_x86_64_@!osname!@)"
+ eelf_x86_64_fbsd.c: $(srcdir)/emulparams/elf_x86_64_fbsd.sh \
+   $(srcdir)/emulparams/elf_x86_64.sh \
+   $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+diff --git a/ld/Makefile.in b/ld/Makefile.in
+index b95a3d1..3a08f25 100644
+--- a/ld/Makefile.in
++++ b/ld/Makefile.in
+@@ -2213,6 +2213,10 @@ earmelf.c: $(srcdir)/emulparams/armelf.sh \
+   $(ELF_DEPS) $(srcdir)/emultempl/armelf.em \
+   $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} armelf "$(tdir_armelf)"
++earmelf_@!osname!@.c: $(srcdir)/emulparams/armelf_@!osname!@.sh \
++  $(ELF_DEPS) $(srcdir)/emultempl/armelf.em \
++  $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} armelf_@!osname!@ "$(tdir_armelf_@!osname!@)"
+ earmelf_fbsd.c: $(srcdir)/emulparams/armelf_fbsd.sh \
+   $(srcdir)/emulparams/armelf.sh \
+   $(ELF_DEPS) $(srcdir)/emultempl/armelf.em \
+@@ -2752,6 +2756,9 @@ eelf32xtensa.c: $(srcdir)/emulparams/elf32xtensa.sh $(ELF_DEPS) \
+ eelf_i386.c: $(srcdir)/emulparams/elf_i386.sh \
+   $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf_i386 "$(tdir_elf_i386)"
++eelf_i386_@!osname!@.c: $(srcdir)/emulparams/elf_i386_@!osname!@.sh \
++  $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} elf_i386_@!osname!@ "$(tdir_elf_i386_@!osname!@)"
+ eelf_i386_be.c: $(srcdir)/emulparams/elf_i386_be.sh \
+   $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf_i386_be "$(tdir_elf_i386_be)"
+@@ -3622,6 +3629,9 @@ eelf_k1om_fbsd.c: $(srcdir)/emulparams/elf_k1om_fbsd.sh \
+ eelf_x86_64.c: $(srcdir)/emulparams/elf_x86_64.sh \
+   $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf_x86_64 "$(tdir_elf_x86_64)"
++eelf_x86_64_@!osname!@.c: $(srcdir)/emulparams/elf_x86_64_@!osname!@.sh \
++  $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} elf_x86_64_@!osname!@ "$(tdir_elf_x86_64_@!osname!@)"
+ eelf_x86_64_fbsd.c: $(srcdir)/emulparams/elf_x86_64_fbsd.sh \
+   $(srcdir)/emulparams/elf_x86_64.sh \
+   $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+diff --git a/ld/configure.tgt b/ld/configure.tgt
+index c50730b..0284259 100644
+--- a/ld/configure.tgt
++++ b/ld/configure.tgt
+@@ -45,6 +45,17 @@ targ64_extra_libpath=
+ # architecture variants should be kept together even if their names
+ # break the alpha sorting.
+ case "${targ}" in
++i[3-7]86-*-@!osname!@*)
++			targ_emul=elf_i386_@!osname!@
++			targ_extra_emuls=elf_i386
++			targ64_extra_emuls="elf_x86_64_@!osname!@ elf_x86_64"
++			;;
++x86_64-*-@!osname!@*)
++			targ_emul=elf_x86_64_@!osname!@
++			targ_extra_emuls="elf_i386_@!osname!@ elf_x86_64 elf_i386"
++			;;
++arm-*-@!osname!@*)		targ_emul=armelf_@!osname!@
++			;;
+ aarch64_be-*-elf)	targ_emul=aarch64elfb
+ 			targ_extra_emuls="aarch64elf aarch64elf32 aarch64elf32b armelfb armelf" ;;
+ aarch64-*-elf)		targ_emul=aarch64elf
+diff --git a/ld/emulparams/armelf_@!osname!@.sh b/ld/emulparams/armelf_@!osname!@.sh
+index e69de29..1be3be4 100644
+--- a/ld/emulparams/armelf_@!osname!@.sh
++++ b/ld/emulparams/armelf_@!osname!@.sh
+@@ -0,0 +1,22 @@
++SCRIPT_NAME=elf
++
++OUTPUT_FORMAT="elf32-littlearm"
++
++TEXT_START_ADDR=0x1000
++
++MAXPAGESIZE="CONSTANT (MAXPAGESIZE)"
++COMMONPAGESIZE="CONSTANT (COMMONPAGESIZE)"
++
++ARCH=arm
++MACHINE=
++
++
++
++ENTRY=_start
++TEMPLATE_NAME=elf32
++
++GENERATE_SHLIB_SCRIPT=yes
++GENERATE_PIE_SCRIPT=yes
++
++NO_SMALL_DATA=yes
++SEPARATE_GOTPLT=12
+diff --git a/ld/emulparams/elf_i386_@!osname!@.sh b/ld/emulparams/elf_i386_@!osname!@.sh
+index e69de29..4ee6a70 100644
+--- a/ld/emulparams/elf_i386_@!osname!@.sh
++++ b/ld/emulparams/elf_i386_@!osname!@.sh
+@@ -0,0 +1,21 @@
++SCRIPT_NAME=elf
++
++OUTPUT_FORMAT=elf32-i386
++
++TEXT_START_ADDR=0x1000
++
++MAXPAGESIZE="CONSTANT (MAXPAGESIZE)"
++COMMONPAGESIZE="CONSTANT (COMMONPAGESIZE)"
++
++ARCH=i386
++MACHINE=
++
++NOP=0x90909090
++
++TEMPLATE_NAME=elf32
++
++GENERATE_SHLIB_SCRIPT=yes
++GENERATE_PIE_SCRIPT=yes
++
++NO_SMALL_DATA=yes
++SEPARATE_GOTPLT=12
+diff --git a/ld/emulparams/elf_x86_64_@!osname!@.sh b/ld/emulparams/elf_x86_64_@!osname!@.sh
+index e69de29..abd3853 100644
+--- a/ld/emulparams/elf_x86_64_@!osname!@.sh
++++ b/ld/emulparams/elf_x86_64_@!osname!@.sh
+@@ -0,0 +1,17 @@
++SCRIPT_NAME=elf
++ELFSIZE=64
++OUTPUT_FORMAT="elf64-x86-64"
++NO_REL_RELOCS=yes
++TEXT_START_ADDR=0x1000
++MAXPAGESIZE="CONSTANT (MAXPAGESIZE)"
++COMMONPAGESIZE="CONSTANT (COMMONPAGESIZE)"
++ARCH="i386:x86-64"
++MACHINE=
++TEMPLATE_NAME=elf32
++GENERATE_SHLIB_SCRIPT=yes
++GENERATE_PIE_SCRIPT=yes
++NO_SMALL_DATA=yes
++LARGE_SECTIONS=yes
++LARGE_BSS_AFTER_BSS=
++SEPARATE_GOTPLT="SIZEOF (.got.plt) >= 24 ? 24 : 0"
++IREL_IN_PLT=

@@ -1,0 +1,126 @@
+diff --git a/config.sub b/config.sub
+index 6d2e94c..2aea707 100755
+--- a/config.sub
++++ b/config.sub
+@@ -2,7 +2,7 @@
+ # Configuration validation subroutine script.
+ #   Copyright 1992-2015 Free Software Foundation, Inc.
+ 
+-timestamp='2015-01-01'
++timestamp='2015-12-26'
+ 
+ # This file is free software; you can redistribute it and/or modify it
+ # under the terms of the GNU General Public License as published by
+@@ -1382,7 +1382,7 @@ case $os in
+ 	      | -bosx* | -nextstep* | -cxux* | -aout* | -elf* | -oabi* \
+ 	      | -ptx* | -coff* | -ecoff* | -winnt* | -domain* | -vsta* \
+ 	      | -udi* | -eabi* | -lites* | -ieee* | -go32* | -aux* \
+-	      | -chorusos* | -chorusrdb* | -cegcc* \
++	      | -chorusos* | -chorusrdb* | -cegcc* | -@!osname!@* \
+ 	      | -cygwin* | -msys* | -pe* | -psos* | -moss* | -proelf* | -rtems* \
+ 	      | -mingw32* | -mingw64* | -linux-gnu* | -linux-android* \
+ 	      | -linux-newlib* | -linux-musl* | -linux-uclibc* \
+diff --git a/fixincludes/mkfixinc.sh b/fixincludes/mkfixinc.sh
+index 6653fed..035dd98 100755
+--- a/fixincludes/mkfixinc.sh
++++ b/fixincludes/mkfixinc.sh
+@@ -11,6 +11,7 @@ target=fixinc.sh
+ 
+ # Check for special fix rules for particular targets
+ case $machine in
++    *-@!osname!@* | \
+     i?86-*-cygwin* | \
+     i?86-*-mingw32* | \
+     x86_64-*-mingw32* | \
+diff --git a/gcc/config.gcc b/gcc/config.gcc
+index c835734..8e17082 100644
+--- a/gcc/config.gcc
++++ b/gcc/config.gcc
+@@ -598,6 +598,11 @@ x86_cpus="generic intel"
+ 
+ # Common parts for widely ported systems.
+ case ${target} in
++*-*-@!osname!@*)
++  gas=yes
++  gnu_ld=yes
++  default_use_cxa_atexit=yes
++  ;;
+ *-*-darwin*)
+   tmake_file="t-darwin ${cpu_type}/t-darwin"
+   tm_file="${tm_file} darwin.h"
+@@ -882,6 +887,21 @@ case ${target} in
+ esac
+ 
+ case ${target} in
++i[34567]86-*-@!osname!@*)
++    tm_file="${tm_file} i386/unix.h i386/att.h dbxelf.h elfos.h glibc-stdint.h i386/i386elf.h @!osname!@.h"
++    ;;
++x86_64-*-@!osname!@*)
++    tm_file="${tm_file} i386/unix.h i386/att.h dbxelf.h elfos.h glibc-stdint.h i386/i386elf.h i386/x86-64.h @!osname!@.h"
++    ;;
++arm*-*-@!osname!@*)
++	default_use_cxa_atexit=yes
++	tm_file="dbxelf.h elfos.h arm/unknown-elf.h arm/elf.h arm/bpabi.h"
++	tmake_file="${tmake_file} arm/t-arm arm/t-arm-elf"
++	tm_file="$tm_file newlib-stdint.h"
++	tmake_file="${tmake_file} arm/t-bpabi"
++	use_gcc_stdint=wrap
++	tm_file="${tm_file} arm/aout.h vxworks-dummy.h arm/arm.h @!osname!@.h"
++	;;
+ aarch64*-*-elf)
+ 	tm_file="${tm_file} dbxelf.h elfos.h newlib-stdint.h"
+ 	tm_file="${tm_file} aarch64/aarch64-elf.h aarch64/aarch64-elf-raw.h"
+diff --git a/gcc/config/@!osname!@.h b/gcc/config/@!osname!@.h
+index e69de29..3caab45 100644
+--- a/gcc/config/@!osname!@.h
++++ b/gcc/config/@!osname!@.h
+@@ -0,0 +1,22 @@
++/* Useful if you wish to make target-specific gcc changes. */
++#undef TARGET_@!OSNAME!@
++#define TARGET_@!OSNAME!@ 1
++
++/* Default arguments you want when running your
++   i686-@!osname!@-gcc/x86_64-@!osname!@-gcc toolchain */
++#define LIB_SPEC "-lc" /* link against C standard library */
++
++/* Don't automatically add extern "C" { } around header files. */
++#undef  NO_IMPLICIT_EXTERN_C
++#define NO_IMPLICIT_EXTERN_C 1
++
++/* Additional predefined macros. */
++#undef TARGET_OS_CPP_BUILTINS
++#define TARGET_OS_CPP_BUILTINS()      \
++  do {                                \
++    builtin_define ("__@!osname!@__");      \
++    builtin_define ("__unix__");      \
++    builtin_assert ("system=@!osname!@");   \
++    builtin_assert ("system=unix");   \
++    builtin_assert ("system=posix");   \
++  } while(0);
+diff --git a/libgcc/config.host b/libgcc/config.host
+index 4329891..fc22ce8 100644
+--- a/libgcc/config.host
++++ b/libgcc/config.host
+@@ -322,6 +322,22 @@ i[34567]86-*-mingw* | x86_64-*-mingw*)
+ esac
+ 
+ case ${host} in
++i[34567]86-*-@!osname!@*)
++	extra_parts="$extra_parts crtbegin.o crtend.o"
++	tmake_file="$tmake_file i386/t-crtstuff t-crtstuff-pic t-libgcc-pic"
++	;;
++x86_64-*-@!osname!@*)
++	extra_parts="$extra_parts crtbegin.o crtend.o"
++	tmake_file="$tmake_file i386/t-crtstuff t-crtstuff-pic t-libgcc-pic"
++	;;
++arm*-*-@!osname!@*)
++	extra_parts="$extra_parts crtbegin.o crtend.o crti.o crtn.o"
++	tmake_file="${tmake_file} arm/t-arm t-fixedpoint-gnu-prefix"
++	tmake_file="${tmake_file} arm/t-elf arm/t-bpabi t-slibgcc-libgcc"
++	tm_file="$tm_file arm/bpabi-lib.h"
++	unwind_header=config/arm/unwind-arm.h
++	tmake_file="$tmake_file t-softfp-sfdf t-softfp-excl arm/t-softfp t-softfp"
++	;;
+ aarch64*-*-elf)
+ 	extra_parts="$extra_parts crtbegin.o crtend.o crti.o crtn.o"
+ 	extra_parts="$extra_parts crtfastmath.o"

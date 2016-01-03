@@ -1,0 +1,26 @@
+GCC=gcc-@!version!@
+GCC_BUILD_DIR = build-$(GCC)
+PREFIX=@!prefix!@
+
+.PHONEY: all stage1 stage2
+
+all: stage1
+
+stage1: $(GCC_BUILD_DIR)/Makefile
+	mkdir -p $(PREFIX)
+	cd $(GCC_BUILD_DIR); $(MAKE) all-gcc; $(MAKE) install-gcc;
+
+$(GCC_BUILD_DIR)/Makefile:
+	mkdir -p $(GCC_BUILD_DIR)
+	cd $(GCC_BUILD_DIR); ../$(GCC)/configure \
+<!--(if target != None)-->
+		--target=@!target!@ \
+<!--(end)-->
+		--prefix=$(PREFIX) --disable-nls \
+		--enable-multilib \
+		--with-system-zlib \
+		--with-newlib \
+		--enable-languages=c
+
+stage2:
+	 cd $(GCC_BUILD_DIR); $(MAKE) all; $(MAKE) install;

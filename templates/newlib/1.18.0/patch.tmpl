@@ -1,0 +1,330 @@
+diff --git a/config.sub b/config.sub
+index 17c9145..17ff1f4 100755
+--- a/config.sub
++++ b/config.sub
+@@ -4,7 +4,7 @@
+ #   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ #   Free Software Foundation, Inc.
+ 
+-timestamp='2009-11-07'
++timestamp='2016-01-01'
+ 
+ # This file is (in principle) common to ALL GNU software.
+ # The presence of a machine in this file suggests that SOME GNU software
+@@ -1280,7 +1280,7 @@ case $os in
+ 	      | -hpux* | -unos* | -osf* | -luna* | -dgux* | -solaris* | -sym* \
+ 	      | -kopensolaris* \
+ 	      | -amigaos* | -amigados* | -msdos* | -newsos* | -unicos* | -aof* \
+-	      | -aos* | -aros* \
++	      | -aos* | -aros* | -@!osname!@* \
+ 	      | -nindy* | -vxsim* | -vxworks* | -ebmon* | -hms* | -mvs* \
+ 	      | -clix* | -riscos* | -uniplus* | -iris* | -rtu* | -xenix* \
+ 	      | -hiux* | -386bsd* | -knetbsd* | -mirbsd* | -netbsd* \
+diff --git a/newlib/configure.host b/newlib/configure.host
+index d77406b..1b83d29 100644
+--- a/newlib/configure.host
++++ b/newlib/configure.host
+@@ -346,6 +346,9 @@ esac
+ # THIS TABLE IS ALPHA SORTED.  KEEP IT THAT WAY.
+ 
+ case "${host}" in
++  *-*-@!osname!@*)
++	sys_dir=@!osname!@
++	;;
+   *-*-cygwin*)
+ 	posix_dir=posix
+ 	stdio64_dir=stdio64
+diff --git a/newlib/libc/sys/configure b/newlib/libc/sys/configure
+index d8a97ed..d9adf08 100755
+--- a/newlib/libc/sys/configure
++++ b/newlib/libc/sys/configure
+@@ -958,7 +958,8 @@ LDFLAGS
+ LIBS
+ CPPFLAGS
+ CPP'
+-ac_subdirs_all='a29khif
++ac_subdirs_all='@!osname!@
++a29khif
+ arc
+ arm
+ d10v
+@@ -5892,13 +5893,13 @@ if test "${lt_cv_nm_interface+set}" = set; then
+ else
+   lt_cv_nm_interface="BSD nm"
+   echo "int some_variable = 0;" > conftest.$ac_ext
+-  (eval echo "\"\$as_me:5895: $ac_compile\"" >&5)
++  (eval echo "\"\$as_me:5896: $ac_compile\"" >&5)
+   (eval "$ac_compile" 2>conftest.err)
+   cat conftest.err >&5
+-  (eval echo "\"\$as_me:5898: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
++  (eval echo "\"\$as_me:5899: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
+   cat conftest.err >&5
+-  (eval echo "\"\$as_me:5901: output\"" >&5)
++  (eval echo "\"\$as_me:5902: output\"" >&5)
+   cat conftest.out >&5
+   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
+     lt_cv_nm_interface="MS dumpbin"
+@@ -7101,7 +7102,7 @@ ia64-*-hpux*)
+   ;;
+ *-*-irix6*)
+   # Find out which ABI we are using.
+-  echo '#line 7104 "configure"' > conftest.$ac_ext
++  echo '#line 7105 "configure"' > conftest.$ac_ext
+   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+   (eval $ac_compile) 2>&5
+   ac_status=$?
+@@ -8956,11 +8957,11 @@ else
+    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
+    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
+    -e 's:$: $lt_compiler_flag:'`
+-   (eval echo "\"\$as_me:8959: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8960: $lt_compile\"" >&5)
+    (eval "$lt_compile" 2>conftest.err)
+    ac_status=$?
+    cat conftest.err >&5
+-   echo "$as_me:8963: \$? = $ac_status" >&5
++   echo "$as_me:8964: \$? = $ac_status" >&5
+    if (exit $ac_status) && test -s "$ac_outfile"; then
+      # The compiler can only warn and ignore the option if not recognized
+      # So say no if there are warnings other than the usual output.
+@@ -9295,11 +9296,11 @@ else
+    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
+    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
+    -e 's:$: $lt_compiler_flag:'`
+-   (eval echo "\"\$as_me:9298: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:9299: $lt_compile\"" >&5)
+    (eval "$lt_compile" 2>conftest.err)
+    ac_status=$?
+    cat conftest.err >&5
+-   echo "$as_me:9302: \$? = $ac_status" >&5
++   echo "$as_me:9303: \$? = $ac_status" >&5
+    if (exit $ac_status) && test -s "$ac_outfile"; then
+      # The compiler can only warn and ignore the option if not recognized
+      # So say no if there are warnings other than the usual output.
+@@ -9400,11 +9401,11 @@ else
+    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
+    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
+    -e 's:$: $lt_compiler_flag:'`
+-   (eval echo "\"\$as_me:9403: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:9404: $lt_compile\"" >&5)
+    (eval "$lt_compile" 2>out/conftest.err)
+    ac_status=$?
+    cat out/conftest.err >&5
+-   echo "$as_me:9407: \$? = $ac_status" >&5
++   echo "$as_me:9408: \$? = $ac_status" >&5
+    if (exit $ac_status) && test -s out/conftest2.$ac_objext
+    then
+      # The compiler can only warn and ignore the option if not recognized
+@@ -9455,11 +9456,11 @@ else
+    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
+    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
+    -e 's:$: $lt_compiler_flag:'`
+-   (eval echo "\"\$as_me:9458: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:9459: $lt_compile\"" >&5)
+    (eval "$lt_compile" 2>out/conftest.err)
+    ac_status=$?
+    cat out/conftest.err >&5
+-   echo "$as_me:9462: \$? = $ac_status" >&5
++   echo "$as_me:9463: \$? = $ac_status" >&5
+    if (exit $ac_status) && test -s out/conftest2.$ac_objext
+    then
+      # The compiler can only warn and ignore the option if not recognized
+@@ -12270,7 +12271,7 @@ else
+   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
+   lt_status=$lt_dlunknown
+   cat > conftest.$ac_ext <<_LT_EOF
+-#line 12273 "configure"
++#line 12274 "configure"
+ #include "confdefs.h"
+ 
+ #if HAVE_DLFCN_H
+@@ -12366,7 +12367,7 @@ else
+   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
+   lt_status=$lt_dlunknown
+   cat > conftest.$ac_ext <<_LT_EOF
+-#line 12369 "configure"
++#line 12370 "configure"
+ #include "confdefs.h"
+ 
+ #if HAVE_DLFCN_H
+@@ -12597,9 +12598,11 @@ fi
+ 
+ if test -n "${sys_dir}"; then
+   case ${sys_dir} in
+-	a29khif)
++	@!osname!@)
+ 
+-subdirs="$subdirs a29khif"
++subdirs="$subdirs @!osname!@"
++ ;;
++	a29khif) subdirs="$subdirs a29khif"
+  ;;
+ 	arc) subdirs="$subdirs arc"
+  ;;
+diff --git a/newlib/libc/sys/configure.in b/newlib/libc/sys/configure.in
+index 1ab9ded..bab8924 100644
+--- a/newlib/libc/sys/configure.in
++++ b/newlib/libc/sys/configure.in
+@@ -21,6 +21,7 @@ fi
+ 
+ if test -n "${sys_dir}"; then
+   case ${sys_dir} in
++	@!osname!@) AC_CONFIG_SUBDIRS(@!osname!@) ;;
+ 	a29khif) AC_CONFIG_SUBDIRS(a29khif) ;;
+ 	arc) AC_CONFIG_SUBDIRS(arc) ;;
+ 	arm) AC_CONFIG_SUBDIRS(arm) ;;
+diff --git a/newlib/libc/sys/@!osname!@/Makefile.am b/newlib/libc/sys/@!osname!@/Makefile.am
+index e69de29..4664dcb 100644
+--- a/newlib/libc/sys/@!osname!@/Makefile.am
++++ b/newlib/libc/sys/@!osname!@/Makefile.am
+@@ -0,0 +1,15 @@
++AUTOMAKE_OPTIONS = cygnus
++INCLUDES = $(NEWLIB_CFLAGS) $(CROSS_CFLAGS) $(TARGET_CFLAGS)
++AM_CCASFLAGS = $(INCLUDES)
++
++noinst_LIBRARIES = lib.a
++
++lib_a_SOURCES = syscalls.c
++lib_a_CCASFLAGS = $(AM_CCASFLAGS)
++lib_a_CFLAGS = $(AM_CFLAGS)
++
++all: crt0.o
++
++ACLOCAL_AMFLAGS = -I ../../.. -I ../../../..
++CONFIG_STATUS_DEPENDENCIES = $(newlib_basedir)/configure.host
++
+diff --git a/newlib/libc/sys/@!osname!@/configure.in b/newlib/libc/sys/@!osname!@/configure.in
+index e69de29..9e15348 100644
+--- a/newlib/libc/sys/@!osname!@/configure.in
++++ b/newlib/libc/sys/@!osname!@/configure.in
+@@ -0,0 +1,7 @@
++AC_PREREQ(2.59)
++AC_INIT([newlib], [NEWLIB_VERSION])
++AC_CONFIG_SRCDIR([crt0.c])
++AC_CONFIG_AUX_DIR(../../../..)
++NEWLIB_CONFIGURE(../../..)
++AC_CONFIG_FILES([Makefile])
++AC_OUTPUT
+diff --git a/newlib/libc/sys/@!osname!@/crt0.c b/newlib/libc/sys/@!osname!@/crt0.c
+index e69de29..c7af636 100644
+--- a/newlib/libc/sys/@!osname!@/crt0.c
++++ b/newlib/libc/sys/@!osname!@/crt0.c
+@@ -0,0 +1,9 @@
++#include <fcntl.h>
++
++extern void exit(int code);
++extern int main ();
++
++void _start() {
++    int ex = main();
++    exit(ex);
++}
+diff --git a/newlib/libc/sys/@!osname!@/syscalls.c b/newlib/libc/sys/@!osname!@/syscalls.c
+index e69de29..f20ba30 100644
+--- a/newlib/libc/sys/@!osname!@/syscalls.c
++++ b/newlib/libc/sys/@!osname!@/syscalls.c
+@@ -0,0 +1,103 @@
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <sys/fcntl.h>
++#include <sys/times.h>
++#include <sys/errno.h>
++#include <sys/time.h>
++#include <stdio.h>
++
++void _exit()
++{
++}
++
++int close(int file)
++{
++  return -1;
++}
++
++char **environ; /* pointer to array of char * strings that define the current environment variables */
++
++int execve(char *name, char **argv, char **env)
++{
++  return -1;
++}
++
++int fork()
++{
++  return -1;
++}
++
++int fstat(int file, struct stat *st)
++{
++  return -1;
++}
++
++int getpid()
++{
++  return -1;
++}
++
++int isatty(int file)
++{
++  return -1;
++}
++
++int kill(int pid, int sig)
++{
++  return -1;
++}
++
++int link(char *old, char *new)
++{
++  return -1;
++}
++
++int lseek(int file, int ptr, int dir)
++{
++  return -1;
++}
++
++int open(const char *name, int flags, ...)
++{
++  return -1;
++}
++
++int read(int file, char *ptr, int len)
++{
++  return -1;
++}
++
++caddr_t sbrk(int incr)
++{
++  return NULL;
++}
++
++int stat(const char *file, struct stat *st)
++{
++  return -1;
++}
++
++clock_t times(struct tms *buf)
++{
++  return -1;
++}
++
++int unlink(char *name)
++{
++  return -1;
++}
++
++int wait(int *status)
++{
++  return -1;
++}
++
++int write(int file, char *ptr, int len)
++{
++  return -1;
++}
++
++int gettimeofday(struct timeval *p, void *z)
++{
++  return -1;
++}
